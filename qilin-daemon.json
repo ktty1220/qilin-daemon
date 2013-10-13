@@ -1,0 +1,11 @@
+{
+  "exec": "sample.js",
+  "args": [],
+  "workers": 3,
+  "worker_disconnect_timeout": 5000,
+  "daemon_port": 9999,
+  "watch": [],
+  "reload_delay": 2000,
+  "auth_username": "admin",
+  "auth_password": "admin"
+}

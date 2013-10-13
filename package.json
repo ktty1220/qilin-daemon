@@ -1,0 +1,10 @@
+{
+  "name": "qilin-daemon",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "usage": "*", 
+    "async": "*", 
+    "node-watch": "*"
+  }
+}
