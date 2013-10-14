@@ -169,6 +169,7 @@ qilin.start () ->
         auth = new Buffer(token, 'base64').toString()
         [ username, password ] = auth.split /:/
         if config.auth_username isnt username or config.auth_password isnt password
+          res.setHeader 'WWW-Authenticate', 'Basic realm="qilin-daemon auth"'
           return send res, { error: 'unauthorized' }, 401
 
       ui = url.parse req.url, true
