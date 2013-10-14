@@ -34,16 +34,42 @@ config.worker_disconnect_timeout ?= 5000
 config.watch ?= []
 config.reload_delay ?= 10000
 
+### functions ###
+
+# human readable numeric
+hmem = (m = 0) -> Math.ceil(m / 1024 / 1024 * 100) / 100
+hcpu = (c = 0) -> Math.ceil(c * 100) / 100
+htime = (t = 0) ->
+  t = Math.floor(t)
+  days = Math.floor(t / 86400)
+  t %= 86400
+  hours = Math.floor(t / 3600)
+  t %= 3600
+  mins = Math.floor(t / 60)
+  t %= 60
+  secs = t
+  days: days
+  hours: hours
+  minutes: mins
+  seconds: secs
+
+# daemon message
+dmessage = (msg) -> console.log "[daemon] #{msg}"
+
+# remove pidfile on quit
+quit = () ->
+  fs.unlinkSync argv.pidfile if argv.pidfile and fs.existsSync argv.pidfile
+  process.exit 0
+
+### ps_name ###
+process.title = config.ps_name if config.ps_name?
+
 ### pidfile ###
 if argv.pidfile
   fs.writeFileSync argv.pidfile, process.pid
   process.on 'SIGINT', () -> quit()
   process.on 'SIGKILL', () -> quit() 
   process.on 'SIGTERM', () -> quit() 
-
-quit = () ->
-  fs.unlinkSync argv.pidfile if argv.pidfile and fs.existsSync argv.pidfile
-  process.exit 0
 
 ### qilin start ###
 opt =
@@ -65,26 +91,6 @@ qilin.start () ->
         clearInterval wTimer
         wTimer = null
     , 1000
-
-  ### human readable numeric funcs ###
-  hmem = (m = 0) -> Math.ceil(m / 1024 / 1024 * 100) / 100
-  hcpu = (c = 0) -> Math.ceil(c * 100) / 100
-  htime = (t = 0) ->
-    t = Math.floor(t)
-    days = Math.floor(t / 86400)
-    t %= 86400
-    hours = Math.floor(t / 3600)
-    t %= 3600
-    mins = Math.floor(t / 60)
-    t %= 60
-    secs = t
-    days: days
-    hours: hours
-    minutes: mins
-    seconds: secs
-  
-  ### daemon message func ###
-  dmessage = (msg) -> console.log "[daemon] #{msg}"
 
   ### daemon methods ###
   methods =
