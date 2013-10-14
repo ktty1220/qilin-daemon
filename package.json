@@ -5,7 +5,7 @@
   "dependencies": {
     "usage": "*", 
     "async": "*", 
-    "node-watch": "*"
+    "node-watch": "*",
     "optimist": "*"
   }
 }
