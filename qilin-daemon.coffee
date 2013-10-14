@@ -7,6 +7,7 @@ url = require 'url'
 path = require 'path'
 watch = require 'node-watch'
 fs = require 'fs'
+{argv} = require 'optimist'
 Qilin = require 'qilin'
 
 # usage isnt necessary on windows
@@ -17,12 +18,12 @@ catch e
 
 ### read 'qilin-daemon.json' ###
 try
-  json = process.argv[2] ? "#{process.cwd()}/qilin-daemon.json"
+  json = argv._[0] ? "#{process.cwd()}/qilin-daemon.json"
   config = require json
   process.chdir path.dirname(json)
 catch e
   console.log e.message
-  process.exit()
+  process.exit 1
 
 ### default config values ###
 throw new Error "no such exec file: '#{config.exec}'" unless fs.existsSync config.exec
@@ -32,6 +33,17 @@ config.silent ?= false
 config.worker_disconnect_timeout ?= 5000
 config.watch ?= []
 config.reload_delay ?= 10000
+
+### pidfile ###
+if argv.pidfile
+  fs.writeFileSync argv.pidfile, process.pid
+  process.on 'SIGINT', () -> quit()
+  process.on 'SIGKILL', () -> quit() 
+  process.on 'SIGTERM', () -> quit() 
+
+quit = () ->
+  fs.unlinkSync argv.pidfile if argv.pidfile and fs.existsSync argv.pidfile
+  process.exit 0
 
 ### qilin start ###
 opt =
@@ -57,10 +69,23 @@ qilin.start () ->
   ### human readable numeric funcs ###
   hmem = (m = 0) -> Math.ceil(m / 1024 / 1024 * 100) / 100
   hcpu = (c = 0) -> Math.ceil(c * 100) / 100
-
+  htime = (t = 0) ->
+    t = Math.floor(t)
+    days = Math.floor(t / 86400)
+    t %= 86400
+    hours = Math.floor(t / 3600)
+    t %= 3600
+    mins = Math.floor(t / 60)
+    t %= 60
+    secs = t
+    days: days
+    hours: hours
+    minutes: mins
+    seconds: secs
+  
   ### daemon message func ###
   dmessage = (msg) -> console.log "[daemon] #{msg}"
-  
+
   ### daemon methods ###
   methods =
     reload: (cb) ->
@@ -95,17 +120,17 @@ qilin.start () ->
   
     info: (cb) ->
       cluster = qilin.listeners.exit[0].target
-      info =
-        master: {}
-        workers: []
-        total: {}
-  
       usage.lookup process.pid, (merr = {}, result = {}) ->
-        info.master.pid = process.pid
-        info.master.cpu = hcpu result.cpu
-        info.master.mem = hmem result.memory
-        info.total.cpu = info.master.cpu
-        info.total.mem = info.master.mem
+        info =
+          master:
+            pid: process.pid
+            cpu: hcpu result.cpu
+            mem: hmem result.memory
+            uptime: htime process.uptime()
+          workers: []
+        info.total =
+          cpu: info.master.cpu
+          mem: info.master.mem
   
         async.each (cw.process for i, cw of cluster.workers), (item, next) ->
           usage.lookup item.pid, (err, result = {}) ->
@@ -146,7 +171,7 @@ qilin.start () ->
         return send res, { error: 'unknown method' }, 404
       methods[m] (err = {}, result) ->
         send res, { error: err.message, result: result }
-        process.exit() if m is 'quit'
+        quit() if m is 'quit'
     .listen config.daemon_port
 
   message = "#{opt.exec} x #{config.workers} started"

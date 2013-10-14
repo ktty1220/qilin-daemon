@@ -1,0 +1,102 @@
+#!/bin/sh
+#
+# qilind  init file for startinig up the qilin-daemon
+#
+# chkconfig: - 20 80
+# description: Starts and stops the qilin-daemon.
+#
+
+###
+# CentOS用起動スクリプト
+#
+# サービス登録方法: chkconfig --add qilind & chkconfig qilind on
+# chkconfigの設定: [level] [priority on boot] [priority on shutdown]
+#                  ex) 345 99 1
+###
+
+# 実行するユーザー
+execuser="root"
+
+# coffeeのパス
+coffee="/usr/local/bin/coffee"
+
+# qilin-daemon.coffeeのパス
+qilindaemon="/path/to/qilin-daemon.coffee"
+
+# アプリケーション名
+appname="hoge-app"
+
+# qilin-daemon.jsonのパス
+configjson="/path/to/qilin-daemon.json"
+
+# 実行時の環境変数
+execenv="NODE_ENV=production"
+
+# 実行ディレクトリ
+appdir="${configjson%/*}"
+
+# ログファイルパス
+logfile="$appdir/$appname.log"
+
+# PIDファイルパス
+pidfile="$appdir/$appname.pid"
+
+# ロックファイルパス
+lockfile="/var/lock/subsys/qilind-$appname"
+
+#set -e
+#set -u
+
+. /etc/rc.d/init.d/functions
+
+start()
+{
+  echo -n $"Starting qilind [$appname]: "
+  if [ ! -f $lockfile ]; then
+    runcommand="$execenv nohup $coffee $qilindaemon $configjson --pidfile=$pidfile >> $logfile 2>&1 &"
+    runuser -l "$execuser" -c "$runcommand" && echo_success || echo_failure
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && touch $lockfile
+  else
+    echo_failure
+    RETVAL=1
+    echo
+    echo "$lockfile is locked."
+  fi
+}
+
+stop()
+{
+  echo -n $"Stopping qilind [$appname]: "
+  if [ -s $pidfile ]; then
+    pid=$(cat $pidfile)
+    kill -TERM $pid > /dev/null 2>&1 && echo_success || echo_failure
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && rm -f $lockfile
+  else
+    echo_failure
+    RETVAL=1
+    echo
+    echo "$pidfile is not exists or is empty."
+  fi
+}
+
+case "$1" in
+  start)
+    start
+    ;;
+  stop)
+    stop
+    ;;
+  restart)
+    stop
+    start
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart}"
+    RETVAL=1
+esac
+
+exit $RETVAL

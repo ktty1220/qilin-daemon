@@ -57,7 +57,7 @@ qilin-daemonは、qilinモジュールを利用して以下の機能を提供す
         2013-10-13T02:50:34.818Z - info: Worker[3] is up: 8500
         [daemon] app.js x 3 started (daemon_port: 9999)
 
-4. curlでデーモンと通信してみます。
+4. curlで管理デーモンと通信してみます。
 
         $ curl http://localhost:9999/info
         {"error":"unauthorized"}
@@ -71,6 +71,12 @@ qilin-daemonは、qilinモジュールを利用して以下の機能を提供す
               "pid": 7108,
               "cpu": 6.35,
               "mem": 22.68
+              "uptime": {
+                "days": 0,
+                "hours": 0,
+                "minutes": 3,
+                "seconds": 22
+              },
             },
             "workers": [
               {
@@ -98,7 +104,7 @@ qilin-daemonは、qilinモジュールを利用して以下の機能を提供す
 
     ※見やすくするためにJSONを展開しています。
 
-    masterプロセス(デーモン)とworkerプロセス(app.js x 3)の各リソース使用状況が確認できました。
+    masterプロセス(管理デーモン)とworkerプロセス(app.js x 3)の各リソース使用状況が確認できました。
 
 5. app.jsに何か変更を加えて5秒ほど待つとworkerプロセスが再起動します。
 
@@ -181,6 +187,8 @@ JSONの形は`{ error: <エラーメッセージ>, result: <結果> }`となり�
 
     管理デーモンおよびworkerプロセスのプロセスIDとCPU・メモリ使用状況を取得します。メモリの数値はMB単位です。
 
+    管理デーモンの情報(master)に関しては、プロセスが起動してからの経過時間情報も返します。
+
     __なお、Windows上で実行している場合はCPU・メモリ使用状況は取得できません(すべて0になります)。__
 
 * reload
@@ -191,6 +199,25 @@ JSONの形は`{ error: <エラーメッセージ>, result: <結果> }`となり�
 
     管理デーモンを終了させます。workerプロセスも終了します。
 
+## exampleディレクトリ
+
+簡単なサンプルです。このディレクトリ上で
+
+    $ coffee ../qilin-daemon.coffee
+
+と実行するとsample.jsがqilin-daemonの管理下で実行されます。
+
+## centos-serviceディレクトリ
+
+qilin-daemon.coffeeをCentOSのサービスに登録する場合に使用する起動スクリプトの雛形です。
+
+qilindファイル内の各種設定を環境に合わせて記述して/etc/init.d/に置き、
+
+    $ chkconfig --add qilind
+    $ chkconfig qilind on
+
+とするとCentOSのサービスに登録されます。
+
 ## 参考にさせていただいたサイト
 
 * [qilin - 思った事](http://atsuya.github.io/blog/2012/10/15/qilin/)
@@ -198,6 +225,12 @@ JSONの形は`{ error: <エラーメッセージ>, result: <結果> }`となり�
 * [Node.js道場1stシーズン課題プレイバック（序の段） - Qiita [キータ]](http://qiita.com/mazzo46@github/items/1b1fac54d72110ebc508)
 
 ## Changelog
+
+### 0.1.1 (2013-10-14)
+
+* httpコマンド`info`で取得する情報に管理デーモンのuptimeを追加
+* pidファイル出力設定追加
+* CentOS用起動スクリプト追加
 
 ### 0.1.0 (2013-10-13)
 

@@ -6,5 +6,6 @@
     "usage": "*", 
     "async": "*", 
     "node-watch": "*"
+    "optimist": "*"
   }
 }
