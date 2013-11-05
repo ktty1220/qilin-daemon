@@ -59,12 +59,12 @@ qilin-daemonは、qilinモジュールを利用して以下の機能を提供す
 
 4. curlで管理デーモンと通信してみます。
 
-        $ curl http://localhost:9999/info
+        $ curl http://localhost:9999/stats
         {"error":"unauthorized"}
 
     エラーが発生しました。`qilin-daemon.json`でベーシック認証の設定をしているので、ユーザー名とパスワードを指定して再度実行します。
 
-        $ curl http://admin:admin@localhost:9999/info
+        $ curl http://admin:admin@localhost:9999/stats
         {
           "result": {
             "master": {
@@ -187,21 +187,27 @@ qilin-daemonは、qilinモジュールを利用して以下の機能を提供す
 
 JSONの形は`{ error: <エラーメッセージ>, result: <結果> }`となります。
 
-* info
+### help
 
-    管理デーモンおよびworkerプロセスのプロセスIDとCPU・メモリ使用状況を取得します。メモリの数値はMB単位です。
+提供している各コマンドと簡単な説明を返します。
 
-    管理デーモンの情報(master)に関しては、プロセスが起動してからの経過時間情報も返します。
+### stats
 
-    __なお、Windows上で実行している場合はCPU・メモリ使用状況は取得できません(すべて0になります)。__
+__※ バージョン0.1.4から`info`という名称から変更になりました__
 
-* reload
+管理デーモンおよびworkerプロセスのプロセスIDとCPU・メモリ使用状況を取得します。メモリの数値はMB単位です。
 
-    workerプロセスを明示的に再起動させます。
+管理デーモンの情報(master)に関しては、プロセスが起動してからの経過時間情報も返します。
 
-* quit
+__なお、Windows上で実行している場合はCPU・メモリ使用状況は取得できません(すべて0になります)。__
 
-    管理デーモンを終了させます。workerプロセスも終了します。
+### reload
+
+workerプロセスを明示的に再起動させます。
+
+### quit
+
+管理デーモンを終了させます。workerプロセスも終了します。
 
 ## exampleディレクトリ
 
@@ -229,6 +235,11 @@ qilindファイル内の各種設定を環境に合わせて記述して/etc/ini
 * [Node.js道場1stシーズン課題プレイバック（序の段） - Qiita [キータ]](http://qiita.com/mazzo46@github/items/1b1fac54d72110ebc508)
 
 ## Changelog
+
+### 0.1.4 (2013-11-05)
+
+* `info`コマンドを`stats`コマンドに名称変更
+* `help`コマンド追加
 
 ### 0.1.3 (2013-10-14)
 

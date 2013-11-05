@@ -68,8 +68,8 @@ process.title = config.ps_name if config.ps_name?
 if argv.pidfile
   fs.writeFileSync argv.pidfile, process.pid
   process.on 'SIGINT', () -> quit()
-  process.on 'SIGKILL', () -> quit() 
-  process.on 'SIGTERM', () -> quit() 
+  process.on 'SIGKILL', () -> quit()
+  process.on 'SIGTERM', () -> quit()
 
 ### qilin start ###
 opt =
@@ -94,6 +94,12 @@ qilin.start () ->
 
   ### daemon methods ###
   methods =
+    help: (cb) ->
+      cb? null,
+        reload: 'restart worker processes'
+        stats: 'get server status (memory, cpu, etc)'
+        quit: 'shutdown server (with workers)'
+
     reload: (cb) ->
       cluster = qilin.listeners?.exit?[0].target
       unless cluster?
@@ -123,39 +129,39 @@ qilin.start () ->
               cb? null, 'OK'
 
       qilin.killWorkers false
-  
-    info: (cb) ->
+
+    stats: (cb) ->
       cluster = qilin.listeners.exit[0].target
       usage.lookup process.pid, (merr = {}, result = {}) ->
-        info =
+        stats =
           master:
             pid: process.pid
             cpu: hcpu result.cpu
             mem: hmem result.memory
             uptime: htime process.uptime()
           workers: []
-        info.total =
-          cpu: info.master.cpu
-          mem: info.master.mem
-  
+        stats.total =
+          cpu: stats.master.cpu
+          mem: stats.master.mem
+
         async.each (cw.process for i, cw of cluster.workers), (item, next) ->
           usage.lookup item.pid, (err, result = {}) ->
             tmp =
               pid: item.pid
               cpu: hcpu result.cpu
               mem: hmem result.memory
-            info.workers.push tmp
-            info.total.cpu += tmp.cpu
-            info.total.mem += tmp.mem
+            stats.workers.push tmp
+            stats.total.cpu += tmp.cpu
+            stats.total.mem += tmp.mem
             next()
         , (err) ->
-          info.total.cpu = hcpu info.total.cpu
-          info.total.mem = hcpu info.total.mem
-          cb merr, info
-  
+          stats.total.cpu = hcpu stats.total.cpu
+          stats.total.mem = hcpu stats.total.mem
+          cb merr, stats
+
     quit: (cb) ->
       qilin.shutdown true, () -> cb null, 'OK'
-  
+
   ### manager daemon http interface ###
   if config.daemon_port
     send = (res, data = {}, status = 200) ->
