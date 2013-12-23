@@ -68,7 +68,6 @@ process.title = config.ps_name if config.ps_name?
 if argv.pidfile
   fs.writeFileSync argv.pidfile, process.pid
   process.on 'SIGINT', () -> quit()
-  process.on 'SIGKILL', () -> quit()
   process.on 'SIGTERM', () -> quit()
 
 ### qilin start ###
