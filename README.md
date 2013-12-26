@@ -228,6 +228,10 @@ qilindファイル内の各種設定を環境に合わせて記述して/etc/ini
 
 とするとCentOSのサービスに登録されます。
 
+## 注意点
+
+qilin-daemonでホットデプロイ化できるスクリプトは`http.createServer()`などでサーバー機構を有していなければならないようです。ただ単に`setInterval()`などで定期的に何らかの処理をするといったスクリプトはqilin-daemonで監視できません。
+
 ## 参考にさせていただいたサイト
 
 * [qilin - 思った事](http://atsuya.github.io/blog/2012/10/15/qilin/)
@@ -235,6 +239,10 @@ qilindファイル内の各種設定を環境に合わせて記述して/etc/ini
 * [Node.js道場1stシーズン課題プレイバック（序の段） - Qiita [キータ]](http://qiita.com/mazzo46@github/items/1b1fac54d72110ebc508)
 
 ## Changelog
+
+### 0.1.6 (2013-12-27)
+
+* 複数workerプロセスの強制再起動が上手くいかなかったケースに対応
 
 ### 0.1.5 (2013-12-23)
 

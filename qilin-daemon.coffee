@@ -112,10 +112,11 @@ qilin.start () ->
       # force destroy check timer
       destroyTimers = {}
       for i, w of cluster.workers
-        destroyTimers[w.id] = setTimeout () ->
-          w.destroy()
-          dmessage "force destroy Worker[#{w.id}]"
-        , config.worker_disconnect_timeout
+        do (w) ->
+          destroyTimers[w.id] = setTimeout () ->
+            w.destroy()
+            dmessage "force destroy Worker[#{w.id}]"
+          , config.worker_disconnect_timeout
 
       cluster.on 'exit', (worker, code, signal) ->
         dTimer = destroyTimers[worker.id]
